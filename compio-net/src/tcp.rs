@@ -133,6 +133,34 @@ impl TcpListener {
             .local_addr()
             .map(|addr| addr.as_socket().expect("should be SocketAddr"))
     }
+
+    /// Receives data and ancillary data from the socket's receive buffer. On
+    /// success, returns a tuple containing the number of bytes received, the
+    /// number of bytes in the control message, and the source address.
+    pub async fn recv_msg<T: IoBufMut, C: IoBufMut>(
+        &self,
+        buffer: T,
+        control: C,
+    ) -> BufResult<(usize, usize, SocketAddr), (T, C)> {
+        self.inner
+            .recv_msg(buffer, control)
+            .await
+            .map_res(|(n, m, addr)| (n, m, addr.as_socket().expect("should be SocketAddr")))
+    }
+
+    /// Receives data and ancillary data from the socket's receive buffer. On
+    /// success, returns a tuple containing the number of bytes received, the
+    /// number of bytes in the control message, and the source address.
+    pub async fn recv_msg_vectored<T: IoVectoredBufMut, C: IoBufMut>(
+        &self,
+        buffer: T,
+        control: C,
+    ) -> BufResult<(usize, usize, SocketAddr), (T, C)> {
+        self.inner
+            .recv_msg_vectored(buffer, control)
+            .await
+            .map_res(|(n, m, addr)| (n, m, addr.as_socket().expect("should be SocketAddr")))
+    }
 }
 
 impl_raw_fd!(TcpListener, socket2::Socket, inner, socket);
