@@ -45,6 +45,19 @@ impl<S> TlsStream<S> {
     pub fn negotiated_alpn(&self) -> Option<Cow<'_, [u8]>> {
         self.0.negotiated_alpn()
     }
+
+    /// Returns a shared reference to the underlying stream.
+    pub fn get_ref(&self) -> &S {
+        match &self.0 {
+            #[cfg(feature = "native-tls")]
+            TlsStreamInner::NativeTls(s) => s.get_ref().get_ref(),
+            #[cfg(feature = "rustls")]
+            TlsStreamInner::Rustls(s) => s.get_ref().0.get_ref(),
+            #[cfg(not(any(feature = "native-tls", feature = "rustls")))]
+            TlsStreamInner::None(f, ..) => match *f {},
+        }
+    }
+
 }
 
 #[cfg(feature = "native-tls")]
