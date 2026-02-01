@@ -318,6 +318,45 @@ impl TcpStream {
         self.inner.socket.set_tcp_nodelay(nodelay)
     }
 
+    /// Receives data and control messages (ancillary data) from the socket.
+    ///
+    /// This is useful for receiving socket-level control information such as
+    /// timestamps, TOS, or other options. Use `flags` to control the receive
+    /// behavior (e.g., `MSG_ERRQUEUE` to read from the error queue).
+    ///
+    /// Returns `(bytes_read, control_len)`.
+    pub async fn recv_msg<T: IoBufMut, C: IoBufMut>(
+        &self,
+        buffer: T,
+        control: C,
+        flags: i32,
+    ) -> BufResult<(usize, usize), (T, C)> {
+        self.inner
+            .recv_msg(buffer, control, flags)
+            .await
+            .map_res(|(bytes_read, control_len, _addr)| (bytes_read, control_len))
+    }
+
+    /// Receives data and control messages (ancillary data) from the socket
+    /// into a vectored buffer.
+    ///
+    /// This is useful for receiving socket-level control information such as
+    /// timestamps, TOS, or other options. Use `flags` to control the receive
+    /// behavior (e.g., `MSG_ERRQUEUE` to read from the error queue).
+    ///
+    /// Returns `(bytes_read, control_len)`.
+    pub async fn recv_msg_vectored<T: IoVectoredBufMut, C: IoBufMut>(
+        &self,
+        buffer: T,
+        control: C,
+        flags: i32,
+    ) -> BufResult<(usize, usize), (T, C)> {
+        self.inner
+            .recv_msg_vectored(buffer, control, flags)
+            .await
+            .map_res(|(bytes_read, control_len, _addr)| (bytes_read, control_len))
+    }
+
     /// Sends out-of-band data on this socket.
     ///
     /// Out-of-band data is sent with the `MSG_OOB` flag.
