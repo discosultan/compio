@@ -42,6 +42,11 @@ impl<S> AsyncStream<S> {
     pub fn get_ref(&self) -> &S {
         self.inner.get_ref()
     }
+
+    /// Get a mutable reference to the inner stream.
+    pub fn get_mut(&mut self) -> &mut S {
+        unsafe { self.inner.as_mut().get_unchecked_mut() }.get_mut()
+    }
 }
 
 macro_rules! poll_future {

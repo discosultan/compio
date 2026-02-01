@@ -58,6 +58,17 @@ impl<S> TlsStream<S> {
         }
     }
 
+    /// Returns a mutable reference to the underlying stream.
+    pub fn get_mut(&mut self) -> &mut S {
+        match &mut self.0 {
+            #[cfg(feature = "native-tls")]
+            TlsStreamInner::NativeTls(s) => s.get_mut().get_mut(),
+            #[cfg(feature = "rustls")]
+            TlsStreamInner::Rustls(s) => s.get_mut().0.get_mut(),
+            #[cfg(not(any(feature = "native-tls", feature = "rustls")))]
+            TlsStreamInner::None(f, ..) => match *f {},
+        }
+    }
 }
 
 #[cfg(feature = "native-tls")]
